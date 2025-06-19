@@ -1,0 +1,47 @@
+# Node modules
+node_modules/
+
+# Build output
+dist/
+build/
+out/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Env files
+.env
+.env.local
+.env.*.local
+
+# VS Code settings
+.vscode/
+
+# TypeScript
+*.tsbuildinfo
+
+# Mac system files
+.DS_Store
+
+# Optional npm cache folder
+.npm/
+
+# JetBrains IDEs
+.idea/
+
+# Misc
+*.tgz
+
+# Coverage reports
+coverage/
+
+# ESLint cache
+.eslintcache
