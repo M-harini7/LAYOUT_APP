@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.react-resizable {
+  position: relative;
+}
+
+.react-resizable-handle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  bottom: 0;
+  right: 0;
+  cursor: se-resize;
+}
+/* index.css or Tailwind custom styles */
+body.light {
+  background-color: white;
+  color: black;
+}
+body.dark {
+  background-color: #111827; /* Tailwind gray-900 */
+  color: white;
+}
+
