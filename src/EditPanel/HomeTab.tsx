@@ -24,6 +24,9 @@ interface Props {
   onImportShapes: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onExport: () => void;
   lightTheme: boolean; 
+  canCopy: boolean;
+canPaste: boolean;
+
 }
 
 const HomeTab: React.FC<Props> = ({
@@ -41,7 +44,9 @@ const HomeTab: React.FC<Props> = ({
   onCopy,
   onPaste,
   onExport,
-  lightTheme, // ✅ Use this
+  lightTheme, 
+  canCopy,
+  canPaste
 }) => {
   const [widthInput, setWidthInput] = useState(canvasWidth.toString());
   const [heightInput, setHeightInput] = useState(canvasHeight.toString());
@@ -135,20 +140,32 @@ const HomeTab: React.FC<Props> = ({
       <div className="flex flex-col items-start space-y-1 min-w-[160px] border-l pl-4 border-gray-300 dark:border-gray-600">
         <span className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-300">Clipboard</span>
         <div className="flex gap-2 flex-wrap">
-          <button
-            onClick={onCopy}
-            className="flex items-center gap-1 px-3 py-1.5 bg-gray-500 hover:bg-gray-600 text-white rounded-md shadow-sm"
-          >
-            <Copy size={16} />
-            <span className="hidden md:inline">Copy</span>
-          </button>
-          <button
-            onClick={onPaste}
-            className="flex items-center gap-1 px-3 py-1.5 bg-gray-700 hover:bg-gray-800 text-white rounded-md shadow-sm"
-          >
-            <ClipboardPaste size={16} />
-            <span className="hidden md:inline">Paste</span>
-          </button>
+        <button
+          onClick={onCopy}
+          disabled={!canCopy}
+          className={`flex items-center gap-1 px-3 py-1.5 rounded-md shadow-sm transition-all duration-150 ${
+            canCopy
+              ? 'bg-gray-500 hover:bg-gray-600 text-white'
+              : 'bg-gray-300 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500'
+          }`}
+        >
+          <Copy size={16} />
+          <span className="hidden md:inline">Copy</span>
+        </button>
+
+        <button
+          onClick={onPaste}
+          disabled={!canPaste}
+          className={`flex items-center gap-1 px-3 py-1.5 rounded-md shadow-sm transition-all duration-150 ${
+            canPaste
+              ? 'bg-gray-700 hover:bg-gray-800 text-white'
+              : 'bg-gray-300 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500'
+          }`}
+        >
+  <ClipboardPaste size={16} />
+  <span className="hidden md:inline">Paste</span>
+</button>
+
         </div>
       </div>
 

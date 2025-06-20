@@ -43,6 +43,9 @@ interface Props {
   setGradientType: (value: string) => void;
   solidColor: string;
   setSolidColor: (color: string) => void;
+  selectedShapeIds: string[];
+  clipboard: ShapeState[];
+
 }
 
 const EditPanel: React.FC<Props> = ({
@@ -81,6 +84,8 @@ const EditPanel: React.FC<Props> = ({
   setGradientType,
   solidColor,
   setSolidColor,
+  selectedShapeIds,
+  clipboard
 }) => {
   const [activeTab, setActiveTab] = useState<'Home' | 'Design' | 'Settings'>('Home');
 
@@ -144,6 +149,8 @@ const EditPanel: React.FC<Props> = ({
               stroke={stroke}
               onCopy={onCopy}
               onPaste={onPaste}
+              canCopy={selectedShapeIds.length > 0}
+               canPaste={clipboard.length > 0}
               onExport={onExport}
               lightTheme={lightTheme}
             />
