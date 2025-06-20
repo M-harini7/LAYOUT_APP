@@ -18,7 +18,6 @@ interface Props {
   hasRedo: boolean;
   foreground: string;
   background: string;
-  stroke: string;
   onCopy: () => void;
   onPaste: () => void;
   onImportShapes: (e: React.ChangeEvent<HTMLInputElement>) => void;

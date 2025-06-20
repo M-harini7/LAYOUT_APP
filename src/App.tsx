@@ -12,7 +12,6 @@ const App: React.FC = () => {
   const [showShapes, setShowShapes] = useState<boolean>(false);
 
   const [foreground, setForeground] = useState<string>('#000000');
-  const [stroke, setStroke] = useState<string>('#cccccc');
 
   const [shapeStates, setShapeStates] = useState<ShapeState[]>([]);
   const [history, setHistory] = useState<AppState[]>([]);
@@ -46,7 +45,6 @@ const App: React.FC = () => {
     canvasHeight,
     foreground,
     background: computedBackground,
-    stroke,
   });
 
   useEffect(() => {
@@ -59,7 +57,6 @@ const App: React.FC = () => {
     setCanvasWidth(state.canvasWidth);
     setCanvasHeight(state.canvasHeight);
     setForeground(state.foreground);
-    setStroke(state.stroke);
   };
 
   const pushToHistory = (newState: Partial<AppState>) => {
@@ -187,7 +184,6 @@ const App: React.FC = () => {
           canvasWidth: imported.canvas?.width ?? 800,
           canvasHeight: imported.canvas?.height ?? 600,
           foreground: design.foreground ?? '#000000',
-          stroke: design.stroke ?? '#cccccc',
         };
   
         pushToHistory(newState);
@@ -209,7 +205,6 @@ const App: React.FC = () => {
       design: {
         foreground,
         background: computedBackground,
-        stroke,
         showGrid,
         lightTheme,
         useGradient,
@@ -284,10 +279,8 @@ const App: React.FC = () => {
           onToggleShapeBox={() => setShowShapes(!showShapes)}
           foreground={foreground}
           background={computedBackground}
-          stroke={stroke}
           setForeground={(f) => pushToHistory({ foreground: f })}
           setBackground={() => {}} // no longer used directly
-          setStroke={(s) => pushToHistory({ stroke: s })}
           onUndo={handleUndo}
           onRedo={handleRedo}
           onClearAll={handleClearAll}
@@ -343,7 +336,6 @@ const App: React.FC = () => {
             handleDeleteShape={handleDeleteShape}
             foregroundColor={foreground}
             backgroundColor={computedBackground}
-            strokeColor={stroke}
             selectedShapeIds={selectedShapeIds}
             setSelectedShapeIds={setSelectedShapeIds}
             showGrid={showGrid}

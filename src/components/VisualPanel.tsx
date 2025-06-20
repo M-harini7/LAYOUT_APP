@@ -12,7 +12,6 @@ interface Props {
   handleDeleteShape: (index: number) => void;
   backgroundColor: string;
   foregroundColor: string;
-  strokeColor: string;
   selectedShapeIds: string[];
   showGrid: boolean;
   lightTheme: boolean;

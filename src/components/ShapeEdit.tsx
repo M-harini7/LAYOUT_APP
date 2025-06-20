@@ -239,7 +239,7 @@ const ShapeEdit: React.FC<Props> = ({ shape, onUpdate, onClose, lightTheme }) =>
               <>
                 <NumberInput label="Font Size" value={fontSize} onChange={wrapSetter(setFontSize)} lightTheme={lightTheme} />
                 <ColorInput label="Font Color" value={fontColor} onChange={wrapSetter(setFontColor)} lightTheme={lightTheme} />
-                <SelectInput label="Font Weight" value={fontWeight} options={['normal', 'bold']} onChange={wrapSetter(setFontWeight)} lightTheme={lightTheme} />
+                <SelectInput label="Font Weight" value={fontWeight} options={['Normal', 'Bold']} onChange={wrapSetter(setFontWeight)} lightTheme={lightTheme} />
                 <SelectInput label="Font Family" value={fontFamily} options={['Arial', 'Georgia', 'Courier New', 'Times New Roman']} onChange={wrapSetter(setFontFamily)} lightTheme={lightTheme} />
               </>
             ),

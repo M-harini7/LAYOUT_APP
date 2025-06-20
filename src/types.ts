@@ -33,5 +33,4 @@ export type AppState = {
   canvasHeight: number;
   foreground: string;
   background: string;
-  stroke: string;
 };

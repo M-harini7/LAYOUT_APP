@@ -20,10 +20,8 @@ interface Props {
   onImportShapes: (e: React.ChangeEvent<HTMLInputElement>) => void;
   foreground: string;
   background: string;
-  stroke: string;
   setForeground: (color: string) => void;
   setBackground: (color: string) => void;
-  setStroke: (color: string) => void;
   onCopy: () => void;
   onExport: () => void;
   onPaste: () => void;
@@ -63,7 +61,6 @@ const EditPanel: React.FC<Props> = ({
   onImportShapes,
   foreground,
   background,
-  stroke,
   setForeground,
   onCopy,
   onPaste,
@@ -146,7 +143,6 @@ const EditPanel: React.FC<Props> = ({
               onImportShapes={onImportShapes}
               foreground={foreground}
               background={background}
-              stroke={stroke}
               onCopy={onCopy}
               onPaste={onPaste}
               canCopy={selectedShapeIds.length > 0}
