@@ -27,8 +27,6 @@ interface Props {
   onCopy: () => void;
   onExport: () => void;
   onPaste: () => void;
-
-  // New
   showGrid: boolean;
   toggleGrid: () => void;
   lightTheme: boolean;
@@ -87,19 +85,34 @@ const EditPanel: React.FC<Props> = ({
   const [activeTab, setActiveTab] = useState<'Home' | 'Design' | 'Settings'>('Home');
 
   return (
-    <div className={`p-2 ${lightTheme ? 'bg-white text-black' : 'bg-gray-800 text-white'}`}>
-      <div className="w-full bg-white shadow rounded-md overflow-hidden">
+    <div
+      className={`p-2 transition-all duration-300 transform animate-fade-in ${
+        lightTheme ? 'bg-white text-black' : 'bg-gray-800 text-white'
+      }`}
+    >
+      <div
+        className={`w-full shadow-md hover:shadow-lg rounded-md overflow-hidden transition-shadow duration-300 ${
+          lightTheme ? 'bg-white' : 'bg-gray-900'
+        }`}
+      >
         {/* Tab Header */}
-        <div className="flex border-b border-gray-300 bg-gray-100">
+        <div
+          className={`flex border-b rounded-t-md overflow-hidden ${
+            lightTheme ? 'border-gray-300 bg-gray-100' : 'border-gray-700 bg-gray-800'
+          }`}
+        >
           {['Home', 'Design', 'Settings'].map((tab) => (
             <button
               key={tab}
-              className={`px-4 py-2 text-sm font-medium ${
+              className={`px-4 py-2 text-sm font-medium transition-all duration-150 ${
                 activeTab === tab
-                  ? 'text-blue-600 border-b-2 border-blue-500 bg-white'
-                  : 'text-gray-500 hover:text-blue-500'
+                  ? 'text-blue-600 border-b-2 border-blue-500 bg-white dark:bg-gray-900'
+                  : lightTheme
+                  ? 'text-gray-500 hover:text-blue-500 hover:bg-gray-200'
+                  : 'text-gray-400 hover:text-blue-400 hover:bg-gray-700'
               }`}
               onClick={() => setActiveTab(tab as 'Home' | 'Design' | 'Settings')}
+              aria-selected={activeTab === tab}
             >
               {tab}
             </button>
@@ -107,7 +120,11 @@ const EditPanel: React.FC<Props> = ({
         </div>
 
         {/* Tab Body */}
-        <div className="px-4 py-6 bg-gray-50">
+        <div
+          className={`px-4 py-6 animate-fade ${
+            lightTheme ? 'bg-gray-50' : 'bg-gray-800'
+          } transition-opacity duration-300`}
+        >
           {activeTab === 'Home' && (
             <HomeTab
               canvasWidth={canvasWidth}
@@ -128,6 +145,7 @@ const EditPanel: React.FC<Props> = ({
               onCopy={onCopy}
               onPaste={onPaste}
               onExport={onExport}
+              lightTheme={lightTheme}
             />
           )}
 
@@ -147,6 +165,7 @@ const EditPanel: React.FC<Props> = ({
               setGradientType={setGradientType}
               solidColor={solidColor}
               setSolidColor={setSolidColor}
+              lightTheme={lightTheme}
             />
           )}
 

@@ -19,6 +19,34 @@ interface Props {
   setSelectedShapeIds: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
+// ✅ Utility: Get corners after rotation
+function getRotatedCorners(x: number, y: number, width: number, height: number, rotation: number) {
+  const rad = (rotation * Math.PI) / 180;
+  const cx = x + width / 2;
+  const cy = y + height / 2;
+
+  const corners = [
+    { x, y },
+    { x: x + width, y },
+    { x: x + width, y: y + height },
+    { x, y: y + height },
+  ];
+
+  return corners.map(({ x: px, y: py }) => {
+    const dx = px - cx;
+    const dy = py - cy;
+    return {
+      x: cx + dx * Math.cos(rad) - dy * Math.sin(rad),
+      y: cy + dx * Math.sin(rad) + dy * Math.cos(rad),
+    };
+  });
+}
+
+// ✅ Utility: Check if all corners are inside canvas
+function isInsideCanvas(corners: { x: number; y: number }[], canvasWidth: number, canvasHeight: number) {
+  return corners.every(({ x, y }) => x >= 0 && x <= canvasWidth && y >= 0 && y <= canvasHeight);
+}
+
 const VisualPanel: React.FC<Props> = ({
   width,
   height,
@@ -30,7 +58,8 @@ const VisualPanel: React.FC<Props> = ({
   foregroundColor,
   selectedShapeIds,
   setSelectedShapeIds,
-  showGrid,         
+  showGrid,
+  lightTheme
 }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
@@ -41,7 +70,7 @@ const VisualPanel: React.FC<Props> = ({
       strokeWidth = 1,
       strokeStyle = 'solid',
     } = shapeState;
-     
+
     const strokeDasharray =
       strokeStyle === 'dashed' ? '6,4' : strokeStyle === 'dotted' ? '2,2' : '0';
 
@@ -49,7 +78,7 @@ const VisualPanel: React.FC<Props> = ({
       case 'Rectangle':
         return (
           <svg viewBox="0 0 100 50" preserveAspectRatio="xMidYMid meet" className="w-full h-full">
-            <rect x="0" y="0" width="100" height="50" fill={fill} stroke={stroke} strokeWidth={strokeWidth} />
+            <rect x="0" y="0" width="100" height="50" fill={fill} stroke={stroke} strokeWidth={strokeWidth} strokeDasharray={strokeDasharray} />
           </svg>
         );
       case 'Square':
@@ -63,7 +92,7 @@ const VisualPanel: React.FC<Props> = ({
           <svg viewBox="0 0 100 100" className="w-full h-full">
             {
               {
-                Square: <rect x="0" y="0" width="100" height="100" fill={fill} stroke={stroke} strokeWidth={strokeWidth} strokeDasharray={strokeDasharray} rx={shapeState.borderRadius ?? 0} ry={shapeState.borderRadius ?? 0}/>,
+                Square: <rect x="0" y="0" width="100" height="100" fill={fill} stroke={stroke} strokeWidth={strokeWidth} strokeDasharray={strokeDasharray} rx={shapeState.borderRadius ?? 0} ry={shapeState.borderRadius ?? 0} />,
                 Circle: <circle cx="50" cy="50" r="45" fill={fill} stroke={stroke} strokeWidth={strokeWidth} strokeDasharray={strokeDasharray} />,
                 Ellipse: <ellipse cx="50" cy="50" rx="45" ry="30" fill={fill} stroke={stroke} strokeWidth={strokeWidth} strokeDasharray={strokeDasharray} />,
                 Triangle: <polygon points="50,10 90,90 10,90" fill={fill} stroke={stroke} strokeWidth={strokeWidth} strokeDasharray={strokeDasharray} />,
@@ -80,10 +109,13 @@ const VisualPanel: React.FC<Props> = ({
   };
 
   const updateShapePositionSize = (index: number, newState: Partial<ShapeState>) => {
-    const updated = [...shapeStates];
-    updated[index] = { ...updated[index], ...newState };
-    setShapeStates(updated);
+    setShapeStates(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], ...newState };
+      return updated;
+    });
   };
+  
 
   return (
     <div
@@ -98,20 +130,18 @@ const VisualPanel: React.FC<Props> = ({
             ? `
               repeating-linear-gradient(to right, #e5e7eb 0 1px, transparent 1px 20px),
               repeating-linear-gradient(to bottom, #e5e7eb 0 1px, transparent 1px 20px),
-              ${backgroundColor}
-              `
+              ${backgroundColor}`
             : backgroundColor
           : showGrid
             ? `
               repeating-linear-gradient(to right, #e5e7eb 0 1px, transparent 1px 20px),
-              repeating-linear-gradient(to bottom, #e5e7eb 0 1px, transparent 1px 20px)
-              `
+              repeating-linear-gradient(to bottom, #e5e7eb 0 1px, transparent 1px 20px)`
             : 'none',
         backgroundRepeat: 'repeat',
         backgroundPosition: '0 0',
         overflow: 'hidden',
       }}
-        onClick={() => setSelectedShapeIds([])}
+      onClick={() => setSelectedShapeIds([])}
     >
       {shapeStates.length === 0 && (
         <div
@@ -128,15 +158,36 @@ const VisualPanel: React.FC<Props> = ({
           size={{ width: shapeState.width, height: shapeState.height }}
           position={{ x: shapeState.x, y: shapeState.y }}
           bounds="parent"
-          onDragStop={(_, d) => updateShapePositionSize(index, { x: d.x, y: d.y })}
-          onResizeStop={(_, __, ref, ___, pos) =>
-            updateShapePositionSize(index, {
-              width: parseInt(ref.style.width, 10),
-              height: parseInt(ref.style.height, 10),
-              x: pos.x,
-              y: pos.y,
-            })
-          }
+          onDragStop={(_, d) => {
+            const { width: w, height: h, rotation = 0 } = shapeState;
+            const corners = getRotatedCorners(d.x, d.y, w, h, rotation);
+            if (isInsideCanvas(corners, width, height)) {
+              updateShapePositionSize(index, { x: d.x, y: d.y });
+            }
+          }}
+          onResizeStop={(_, __, ref, ___, pos) => {
+            const newWidth = parseInt(ref.style.width, 10);
+            const newHeight = parseInt(ref.style.height, 10);
+            const { rotation = 0 } = shapeState;
+            const corners = getRotatedCorners(pos.x, pos.y, newWidth, newHeight, rotation);
+            if (isInsideCanvas(corners, width, height)) {
+              updateShapePositionSize(index, {
+                width: newWidth,
+                height: newHeight,
+                x: pos.x,
+                y: pos.y,
+              });
+            }
+          }}
+          onDrag={(_, d) => {
+            const { width: w, height: h, rotation = 0 } = shapeState;
+            const corners = getRotatedCorners(d.x, d.y, w, h, rotation);
+            if (isInsideCanvas(corners, width, height)) {
+              updateShapePositionSize(index, { x: d.x, y: d.y });
+            }
+          }}
+          
+          
           onMouseEnter={() => setHoveredIndex(index)}
           onMouseLeave={() => setHoveredIndex(null)}
           onClick={(e: any) => {
@@ -169,7 +220,6 @@ const VisualPanel: React.FC<Props> = ({
                 boxShadow: shapeState.boxShadow || 'none',
                 borderRadius: shapeState.borderRadius ? `${shapeState.borderRadius}px` : '0',
                 pointerEvents: 'auto',
-                transition: shapeState.transition || 'transform 0.1s ease-in-out',
                 position: 'relative',
               }}
             >
@@ -208,10 +258,15 @@ const VisualPanel: React.FC<Props> = ({
               <div className="absolute inset-0 border-2 border-dashed border-blue-400 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none" />
 
               {/* Edit Button */}
+              {/* Edit Button */}
               <button
                 onMouseDown={(e) => e.stopPropagation()}
                 onClick={() => handleEditShape(index)}
-                className="absolute top-2 right-10 p-1 bg-white border border-gray-300 rounded-full hover:bg-gray-200 opacity-0 group-hover:opacity-100 transition"
+                className={`absolute top-2 right-10 p-1 border rounded-full transition opacity-0 group-hover:opacity-100 ${
+                  lightTheme
+                    ? 'bg-white border-gray-300 hover:bg-gray-200 text-gray-700'
+                    : 'bg-gray-700 border-gray-600 hover:bg-gray-600 text-white'
+                }`}
               >
                 <FiEdit />
               </button>
@@ -220,10 +275,15 @@ const VisualPanel: React.FC<Props> = ({
               <button
                 onMouseDown={(e) => e.stopPropagation()}
                 onClick={() => handleDeleteShape(index)}
-                className="absolute top-2 right-2 p-1 bg-white border border-gray-300 rounded-full hover:bg-gray-200 opacity-0 group-hover:opacity-100 transition"
+                className={`absolute top-2 right-2 p-1 border rounded-full transition opacity-0 group-hover:opacity-100 ${
+                  lightTheme
+                    ? 'bg-white border-gray-300 hover:bg-red-100 text-red-600'
+                    : 'bg-gray-700 border-gray-600 hover:bg-red-800 text-red-400'
+                }`}
               >
                 <FiTrash2 />
               </button>
+
             </div>
           </div>
         </Rnd>

@@ -16,35 +16,47 @@ interface Props {
   shape: ShapeState;
   onUpdate: (updated: Partial<ShapeState>) => void;
   onClose: () => void;
+  lightTheme: boolean;
 }
 
-const ShapeEdit: React.FC<Props> = ({ shape, onUpdate, onClose }) => {
+const ShapeEdit: React.FC<Props> = ({ shape, onUpdate, onClose, lightTheme }) => {
   const originalShapeRef = useRef<ShapeState>(shape);
+  const isInternalUpdate = useRef(false);
 
-  const [title, setTitle] = useState(shape.title ?? '');
-  const [width, setWidth] = useState(shape.width);
-  const [height, setHeight] = useState(shape.height);
-  const [x, setX] = useState(shape.x);
-  const [y, setY] = useState(shape.y);
-  const [fill, setFill] = useState(shape.fill ?? '#ffffff');
-  const [stroke, setStroke] = useState(shape.stroke ?? '#cccccc');
-  const [strokeWidth, setStrokeWidth] = useState(shape.strokeWidth ?? 1);
-  const [strokeStyle, setStrokeStyle] = useState<'solid' | 'dashed' | 'dotted'>(shape.strokeStyle ?? 'solid');
-  const [rotation, setRotation] = useState(shape.rotation ?? 0);
-  const [opacity, setOpacity] = useState(shape.opacity ?? 1);
-  const [transition, setTransition] = useState(shape.transition ?? '');
-  const [borderRadius, setBorderRadius] = useState(shape.borderRadius ?? 0);
-  const [zIndex, setZIndex] = useState(shape.zIndex ?? 1);
+  // Utility to wrap setters to track user-initiated changes
+  const wrapSetter = <T,>(setter: React.Dispatch<React.SetStateAction<T>>) => (val: T) => {
+    isInternalUpdate.current = true;
+    setter(val);
+  };
+
+  // Shape states
+  const [title, setTitle] = useState('');
+  const [width, setWidth] = useState(0);
+  const [height, setHeight] = useState(0);
+  const [x, setX] = useState(0);
+  const [y, setY] = useState(0);
+  const [fill, setFill] = useState('#ffffff');
+  const [stroke, setStroke] = useState('#cccccc');
+  const [strokeWidth, setStrokeWidth] = useState(1);
+  const [strokeStyle, setStrokeStyle] = useState<'solid' | 'dashed' | 'dotted'>('solid');
+  const [rotation, setRotation] = useState(0);
+  const [opacity, setOpacity] = useState(1);
+  const [transition, setTransition] = useState('');
+  const [borderRadius, setBorderRadius] = useState(0);
+  const [zIndex, setZIndex] = useState(1);
+
   const [boxShadowX, setBoxShadowX] = useState(0);
   const [boxShadowY, setBoxShadowY] = useState(0);
   const [boxShadowBlur, setBoxShadowBlur] = useState(0);
   const [boxShadowSpread, setBoxShadowSpread] = useState(0);
   const [boxShadowColor, setBoxShadowColor] = useState('#000000');
   const [boxShadow, setBoxShadow] = useState('');
-  const [fontSize, setFontSize] = useState(shape.fontSize ?? 14);
-  const [fontColor, setFontColor] = useState(shape.fontColor ?? '#000000');
-  const [fontWeight, setFontWeight] = useState<'normal' | 'bold'>(shape.fontWeight ?? 'normal')
-  const [fontFamily, setFontFamily] = useState(shape.fontFamily ?? 'Arial');
+
+  const [fontSize, setFontSize] = useState(14);
+  const [fontColor, setFontColor] = useState('#000000');
+  const [fontWeight, setFontWeight] = useState<'normal' | 'bold'>('normal');
+  const [fontFamily, setFontFamily] = useState('Arial');
+
   const [textShadowX, setTextShadowX] = useState(0);
   const [textShadowY, setTextShadowY] = useState(0);
   const [textShadowBlur, setTextShadowBlur] = useState(0);
@@ -54,7 +66,9 @@ const ShapeEdit: React.FC<Props> = ({ shape, onUpdate, onClose }) => {
   const handleReset = () => {
     const original = originalShapeRef.current;
   
-    // Basic fields
+    isInternalUpdate.current = false; // we'll call onUpdate manually instead
+  
+    // Reset state
     setTitle(original.title ?? '');
     setWidth(original.width);
     setHeight(original.height);
@@ -69,39 +83,33 @@ const ShapeEdit: React.FC<Props> = ({ shape, onUpdate, onClose }) => {
     setTransition(original.transition ?? '');
     setBorderRadius(original.borderRadius ?? 0);
     setZIndex(original.zIndex ?? 1);
-  
-    // Font properties
     setFontSize(original.fontSize ?? 14);
     setFontColor(original.fontColor ?? '#000000');
     setFontWeight(original.fontWeight ?? 'normal');
     setFontFamily(original.fontFamily ?? 'Arial');
   
-    // Box shadow (parse original or fallback)
     const box = original.boxShadow ?? '0px 0px 0px 0px #000000';
     const boxMatch = box.match(/(-?\d+)px\s+(-?\d+)px\s+(\d+)px\s+(\d+)px\s+(#[0-9a-fA-F]{6})/);
     const [bx, by, blur, spread, color] = boxMatch ? boxMatch.slice(1) : ['0', '0', '0', '0', '#000000'];
-  
-    const boxShadowString = `${bx}px ${by}px ${blur}px ${spread}px ${color}`;
+    const boxShadow = `${bx}px ${by}px ${blur}px ${spread}px ${color}`;
     setBoxShadowX(parseInt(bx));
     setBoxShadowY(parseInt(by));
     setBoxShadowBlur(parseInt(blur));
     setBoxShadowSpread(parseInt(spread));
     setBoxShadowColor(color);
-    setBoxShadow(boxShadowString);
+    setBoxShadow(boxShadow);
   
-    // Text shadow (parse original or fallback)
     const text = original.textShadow ?? '0px 0px 0px #000000';
     const textMatch = text.match(/(-?\d+)px\s+(-?\d+)px\s+(\d+)px\s+(#[0-9a-fA-F]{6})/);
     const [tx, ty, tBlur, tColor] = textMatch ? textMatch.slice(1) : ['0', '0', '0', '#000000'];
-  
-    const textShadowString = `${tx}px ${ty}px ${tBlur}px ${tColor}`;
+    const textShadow = `${tx}px ${ty}px ${tBlur}px ${tColor}`;
     setTextShadowX(parseInt(tx));
     setTextShadowY(parseInt(ty));
     setTextShadowBlur(parseInt(tBlur));
     setTextShadowColor(tColor);
-    setTextShadow(textShadowString);
+    setTextShadow(textShadow);
   
-    // Immediately propagate reset values to visual panel
+    // 🔄 Immediately update parent
     onUpdate({
       title: original.title ?? '',
       width: original.width,
@@ -117,75 +125,49 @@ const ShapeEdit: React.FC<Props> = ({ shape, onUpdate, onClose }) => {
       transition: original.transition ?? '',
       borderRadius: original.borderRadius ?? 0,
       zIndex: original.zIndex ?? 1,
-      boxShadow: boxShadowString,
       fontSize: original.fontSize ?? 14,
       fontColor: original.fontColor ?? '#000000',
       fontWeight: original.fontWeight ?? 'normal',
       fontFamily: original.fontFamily ?? 'Arial',
-      textShadow: textShadowString,
+      boxShadow,
+      textShadow,
     });
   };
   
+  
 
   useEffect(() => {
-    const shadow = `${boxShadowX}px ${boxShadowY}px ${boxShadowBlur}px ${boxShadowSpread}px ${boxShadowColor}`;
-    setBoxShadow(shadow);
+    const box = `${boxShadowX}px ${boxShadowY}px ${boxShadowBlur}px ${boxShadowSpread}px ${boxShadowColor}`;
+    setBoxShadow(box);
   }, [boxShadowX, boxShadowY, boxShadowBlur, boxShadowSpread, boxShadowColor]);
+
   useEffect(() => {
-    const tShadow = `${textShadowX}px ${textShadowY}px ${textShadowBlur}px ${textShadowColor}`;
-    setTextShadow(tShadow);
+    const text = `${textShadowX}px ${textShadowY}px ${textShadowBlur}px ${textShadowColor}`;
+    setTextShadow(text);
   }, [textShadowX, textShadowY, textShadowBlur, textShadowColor]);
 
   useEffect(() => {
-    onUpdate({
-      title,
-      width,
-      height,
-      x,
-      y,
-      fill,
-      stroke,
-      strokeWidth,
-      strokeStyle,
-      rotation,
-      opacity,
-      transition,
-      borderRadius,
-      boxShadow,
-      zIndex,
-      fontSize,
-      fontColor,
-      fontWeight,
-      fontFamily,
-      textShadow,
-    });
+    if (isInternalUpdate.current) {
+      onUpdate({
+        title, width, height, x, y, fill, stroke,
+        strokeWidth, strokeStyle, rotation, opacity,
+        transition, borderRadius, boxShadow, zIndex,
+        fontSize, fontColor, fontWeight, fontFamily, textShadow,
+      });
+      isInternalUpdate.current = false;
+    }
   }, [
-    title,
-    width,
-    height,
-    x,
-    y,
-    fill,
-    stroke,
-    strokeWidth,
-    strokeStyle,
-    rotation,
-    opacity,
-    transition,
-    borderRadius,
-    boxShadow,
-    zIndex,
-    fontSize,
-    fontColor,
-    fontWeight,
-    fontFamily,
-    textShadow,
+    title, width, height, x, y, fill, stroke,
+    strokeWidth, strokeStyle, rotation, opacity,
+    transition, borderRadius, boxShadow, zIndex,
+    fontSize, fontColor, fontWeight, fontFamily, textShadow,
   ]);
 
   useEffect(() => {
-    if (originalShapeRef.current.id !== shape.id) {
+    if (!originalShapeRef.current) {
       originalShapeRef.current = shape;
-    
+    }
+
     setTitle(shape.title ?? '');
     setWidth(shape.width);
     setHeight(shape.height);
@@ -204,11 +186,7 @@ const ShapeEdit: React.FC<Props> = ({ shape, onUpdate, onClose }) => {
     setFontColor(shape.fontColor ?? '#000000');
     setFontWeight(shape.fontWeight ?? 'normal');
     setFontFamily(shape.fontFamily ?? 'Arial');
-  
-    // ✅ Fix: Set original shape only when shape ID changes
-    originalShapeRef.current = shape;
-  
-    // Optional: Reset box shadow and text shadow too
+
     const box = shape.boxShadow ?? '0px 0px 0px 0px #000000';
     const boxMatch = box.match(/(-?\d+)px\s+(-?\d+)px\s+(\d+)px\s+(\d+)px\s+(#[0-9a-fA-F]{6})/);
     const [bx, by, blur, spread, color] = boxMatch ? boxMatch.slice(1) : ['0', '0', '0', '0', '#000000'];
@@ -217,7 +195,7 @@ const ShapeEdit: React.FC<Props> = ({ shape, onUpdate, onClose }) => {
     setBoxShadowBlur(parseInt(blur));
     setBoxShadowSpread(parseInt(spread));
     setBoxShadowColor(color);
-  
+
     const text = shape.textShadow ?? '0px 0px 0px #000000';
     const textMatch = text.match(/(-?\d+)px\s+(-?\d+)px\s+(\d+)px\s+(#[0-9a-fA-F]{6})/);
     const [tx, ty, tBlur, tColor] = textMatch ? textMatch.slice(1) : ['0', '0', '0', '#000000'];
@@ -225,131 +203,126 @@ const ShapeEdit: React.FC<Props> = ({ shape, onUpdate, onClose }) => {
     setTextShadowY(parseInt(ty));
     setTextShadowBlur(parseInt(tBlur));
     setTextShadowColor(tColor);
-    }
-  }, [shape.id]); // ✅ Only runs when shape ID changes
-  
-  
+  }, [shape]);
 
   return (
-    <div className="w-80 p-4 bg-white border-l border-gray-200 shadow-lg fixed right-0 top-0 h-full z-50 overflow-y-auto text-sm rounded-l-2xl">
-      {/* Header */}
+    <div className={`w-80 p-4 fixed right-0 top-0 h-full z-50 overflow-y-auto text-sm rounded-l-2xl border-l shadow-lg
+      ${lightTheme ? 'bg-white text-gray-800 border-gray-200' : 'bg-gray-900 text-gray-100 border-gray-700'}`}>
+      
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-base font-semibold text-gray-800 flex items-center gap-2">
+        <h2 className={`text-base font-semibold flex items-center gap-2 ${lightTheme ? 'text-gray-800' : 'text-gray-100'}`}>
           <FiSliders className="text-blue-500" /> Edit Shape
         </h2>
         <div className="flex gap-3">
-          <button onClick={handleReset} title="Reset to original" className="text-gray-500 hover:text-blue-600 transition">
+          <button onClick={handleReset} title="Reset to original"
+            className={`transition ${lightTheme ? 'text-gray-500 hover:text-blue-600' : 'text-gray-400 hover:text-blue-400'}`}>
             <FiRefreshCw size={16} />
           </button>
-          <button onClick={onClose} title="Close" className="text-gray-400 hover:text-red-500 transition">
+          <button onClick={onClose} title="Close"
+            className={`transition ${lightTheme ? 'text-gray-400 hover:text-red-500' : 'text-gray-500 hover:text-red-400'}`}>
             <FiX size={18} />
           </button>
         </div>
       </div>
 
       <div className="space-y-6">
-        {/* Title */}
-        <section>
-          <h3 className="flex items-center gap-2 text-xs font-bold text-gray-600 mb-2 uppercase">
-            <FiType /> Title
-          </h3>
-          <div className="bg-gray-50 p-2 rounded-md">
-            <TextInput label="Shape Title" value={title} onChange={setTitle} />
-          </div>
-        </section>
-
-        {/* Title Styling */}
-        <section>
-          <h3 className="flex items-center gap-2 text-xs font-bold text-gray-600 mb-2 uppercase">
-            <FiType className="text-purple-600" /> Title Styling
-          </h3>
-          <div className="grid grid-cols-2 gap-2 bg-gray-50 p-2 rounded-md">
-            <NumberInput label="Font Size" value={fontSize} onChange={setFontSize} />
-            <ColorInput label="Font Color" value={fontColor} onChange={setFontColor} />
-            <SelectInput label="Font Weight" value={fontWeight} options={['normal', 'bold']} onChange={setFontWeight} />
-            <SelectInput label="Font Family" value={fontFamily} options={['Arial', 'Georgia', 'Courier New', 'Times New Roman']} onChange={setFontFamily} />
-          </div>
-        </section>
-
-        {/* Text Shadow */}
-        <section>
-          <h3 className="flex items-center gap-2 text-xs font-bold text-gray-600 mb-2 uppercase">
-            <FiLayout /> Text Shadow
-          </h3>
-          <div className="grid grid-cols-2 gap-2 bg-gray-50 p-2 rounded-md">
-            <NumberInput label="X Offset" value={textShadowX} onChange={setTextShadowX} />
-            <NumberInput label="Y Offset" value={textShadowY} onChange={setTextShadowY} />
-            <NumberInput label="Blur Radius" value={textShadowBlur} onChange={setTextShadowBlur} />
-            <ColorInput label="Shadow Color" value={textShadowColor} onChange={setTextShadowColor} />
-          </div>
-        </section>
-
-        {/* Size & Position */}
-        <section>
-          <h3 className="flex items-center gap-2 text-xs font-bold text-gray-600 mb-2 uppercase">
-            <FiMove /> Size & Position
-          </h3>
-          <div className="grid grid-cols-2 gap-2 bg-gray-50 p-2 rounded-md">
-            <NumberInput label="Width" value={width} onChange={setWidth} />
-            <NumberInput label="Height" value={height} onChange={setHeight} />
-            <NumberInput label="X" value={x} onChange={setX} />
-            <NumberInput label="Y" value={y} onChange={setY} />
-          </div>
-        </section>
-
-        {/* Color & Stroke */}
-        <section>
-          <h3 className="flex items-center gap-2 text-xs font-bold text-gray-600 mb-2 uppercase">
-            <FiDroplet /> Color & Stroke
-          </h3>
-          <div className="grid grid-cols-2 gap-2 bg-gray-50 p-2 rounded-md">
-            <ColorInput label="Fill" value={fill} onChange={setFill} />
-            <ColorInput label="Stroke" value={stroke} onChange={setStroke} />
-            <NumberInput label="Stroke Width" value={strokeWidth} onChange={setStrokeWidth} />
-            <SelectInput
-              label="Stroke Style"
-              value={strokeStyle}
-              options={['solid', 'dashed', 'dotted']}
-              onChange={setStrokeStyle}
-            />
-          </div>
-        </section>
-
-        {/* Effects */}
-        <section>
-          <h3 className="flex items-center gap-2 text-xs font-bold text-gray-600 mb-2 uppercase">
-            <FiSliders className="text-green-600" /> Effects
-          </h3>
-          <div className="grid grid-cols-2 gap-2 bg-gray-50 p-2 rounded-md">
-            <NumberInput label="Rotation (°)" value={rotation} onChange={setRotation} />
-            <RangeInput label="Opacity" value={opacity} onChange={setOpacity} step={0.05} min={0} max={1} />
-          </div>
-        </section>
-
-        {/* Box Shadow */}
-        <section>
-          <h3 className="flex items-center gap-2 text-xs font-bold text-gray-600 mb-2 uppercase">
-            <FiLayout /> Box Shadow
-          </h3>
-          <div className="grid grid-cols-2 gap-2 bg-gray-50 p-2 rounded-md">
-            <NumberInput label="X Offset" value={boxShadowX} onChange={setBoxShadowX} />
-            <NumberInput label="Y Offset" value={boxShadowY} onChange={setBoxShadowY} />
-            <NumberInput label="Blur Radius" value={boxShadowBlur} onChange={setBoxShadowBlur} />
-            <NumberInput label="Spread Radius" value={boxShadowSpread} onChange={setBoxShadowSpread} />
-            <ColorInput label="Shadow Color" value={boxShadowColor} onChange={setBoxShadowColor} />
-          </div>
-        </section>
-
-        {/* More Features */}
-        <section>
-          <h3 className="flex items-center gap-2 text-xs font-bold text-gray-600 mb-2 uppercase">
-            <FiLayout /> More Features
-          </h3>
-          <div className="grid grid-cols-2 gap-2 bg-gray-50 p-2 rounded-md">
-            <NumberInput label="Border Radius" value={borderRadius} onChange={setBorderRadius} />
-            <NumberInput label="Z-Index" value={zIndex} onChange={setZIndex} />
-          </div>
-        </section>
+        {[
+          {
+            icon: <FiType />,
+            title: 'Title',
+            content: <TextInput label="Shape Title" value={title} onChange={wrapSetter(setTitle)} lightTheme={lightTheme} />,
+          },
+          {
+            icon: <FiType className="text-purple-600" />,
+            title: 'Title Styling',
+            content: (
+              <>
+                <NumberInput label="Font Size" value={fontSize} onChange={wrapSetter(setFontSize)} lightTheme={lightTheme} />
+                <ColorInput label="Font Color" value={fontColor} onChange={wrapSetter(setFontColor)} lightTheme={lightTheme} />
+                <SelectInput label="Font Weight" value={fontWeight} options={['normal', 'bold']} onChange={wrapSetter(setFontWeight)} lightTheme={lightTheme} />
+                <SelectInput label="Font Family" value={fontFamily} options={['Arial', 'Georgia', 'Courier New', 'Times New Roman']} onChange={wrapSetter(setFontFamily)} lightTheme={lightTheme} />
+              </>
+            ),
+          },
+          {
+            icon: <FiLayout />,
+            title: 'Text Shadow',
+            content: (
+              <>
+                <NumberInput label="X Offset" value={textShadowX} onChange={wrapSetter(setTextShadowX)} lightTheme={lightTheme} />
+                <NumberInput label="Y Offset" value={textShadowY} onChange={wrapSetter(setTextShadowY)} lightTheme={lightTheme} />
+                <NumberInput label="Blur Radius" value={textShadowBlur} onChange={wrapSetter(setTextShadowBlur)} lightTheme={lightTheme} />
+                <ColorInput label="Shadow Color" value={textShadowColor} onChange={wrapSetter(setTextShadowColor)} lightTheme={lightTheme} />
+              </>
+            ),
+          },
+          {
+            icon: <FiMove />,
+            title: 'Size & Position',
+            content: (
+              <>
+                <NumberInput label="Width" value={width} onChange={wrapSetter(setWidth)} lightTheme={lightTheme} />
+                <NumberInput label="Height" value={height} onChange={wrapSetter(setHeight)} lightTheme={lightTheme} />
+                <NumberInput label="X" value={x} onChange={wrapSetter(setX)} lightTheme={lightTheme} />
+                <NumberInput label="Y" value={y} onChange={wrapSetter(setY)} lightTheme={lightTheme} />
+              </>
+            ),
+          },
+          {
+            icon: <FiDroplet />,
+            title: 'Color & Stroke',
+            content: (
+              <>
+                <ColorInput label="Fill" value={fill} onChange={wrapSetter(setFill)} lightTheme={lightTheme} />
+                <ColorInput label="Stroke" value={stroke} onChange={wrapSetter(setStroke)} lightTheme={lightTheme} />
+                <NumberInput label="Stroke Width" value={strokeWidth} onChange={wrapSetter(setStrokeWidth)} lightTheme={lightTheme} />
+                <SelectInput label="Stroke Style" value={strokeStyle} options={['solid', 'dashed', 'dotted']} onChange={wrapSetter(setStrokeStyle)} lightTheme={lightTheme} />
+              </>
+            ),
+          },
+          {
+            icon: <FiSliders className="text-green-600" />,
+            title: 'Effects',
+            content: (
+              <>
+                <NumberInput label="Rotation (°)" value={rotation} onChange={wrapSetter(setRotation)} lightTheme={lightTheme} />
+                <RangeInput label="Opacity" value={opacity} onChange={wrapSetter(setOpacity)} step={0.05} min={0} max={1} lightTheme={lightTheme} />
+              </>
+            ),
+          },
+          {
+            icon: <FiLayout />,
+            title: 'Box Shadow',
+            content: (
+              <>
+                <NumberInput label="X Offset" value={boxShadowX} onChange={wrapSetter(setBoxShadowX)} lightTheme={lightTheme} />
+                <NumberInput label="Y Offset" value={boxShadowY} onChange={wrapSetter(setBoxShadowY)} lightTheme={lightTheme} />
+                <NumberInput label="Blur Radius" value={boxShadowBlur} onChange={wrapSetter(setBoxShadowBlur)} lightTheme={lightTheme} />
+                <NumberInput label="Spread Radius" value={boxShadowSpread} onChange={wrapSetter(setBoxShadowSpread)} lightTheme={lightTheme} />
+                <ColorInput label="Shadow Color" value={boxShadowColor} onChange={wrapSetter(setBoxShadowColor)} lightTheme={lightTheme} />
+              </>
+            ),
+          },
+          {
+            icon: <FiLayout />,
+            title: 'More Features',
+            content: (
+              <>
+                <NumberInput label="Border Radius" value={borderRadius} onChange={wrapSetter(setBorderRadius)} lightTheme={lightTheme} />
+                <NumberInput label="Z-Index" value={zIndex} onChange={wrapSetter(setZIndex)} lightTheme={lightTheme} />
+              </>
+            ),
+          },
+        ].map(({ icon, title, content }, index) => (
+          <section key={index}>
+            <h3 className={`flex items-center gap-2 text-xs font-bold mb-2 uppercase ${lightTheme ? 'text-gray-600' : 'text-gray-300'}`}>
+              {icon} {title}
+            </h3>
+            <div className={`grid grid-cols-2 gap-2 p-2 rounded-md ${lightTheme ? 'bg-white text-black' : 'bg-gray-800 text-white'}`}>
+              {content}
+            </div>
+          </section>
+        ))}
       </div>
     </div>
   );

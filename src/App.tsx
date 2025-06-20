@@ -141,12 +141,12 @@ const App: React.FC = () => {
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
+  
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
         const imported = JSON.parse(event.target?.result as string);
-
+  
         const validatedShapes: ShapeState[] = (imported.shapes ?? []).map((shape: any, index: number) => ({
           id: shape.id ?? crypto.randomUUID(),
           title: shape.title ?? `Shape ${index + 1}`,
@@ -167,24 +167,38 @@ const App: React.FC = () => {
           fontSize: shape.fontSize ?? 16,
           fontWeight: shape.fontWeight ?? 'normal',
           fontFamily: shape.fontFamily ?? 'Arial',
+          textShadow: shape.textShadow ?? '',
+          fontColor: shape.fontColor ?? '#000000',
+          zIndex: shape.zIndex ?? 1,
         }));
-
+  
+        const design = imported.design ?? {};
+        setShowGrid(design.showGrid ?? false);
+        setLightTheme(design.lightTheme ?? true);
+        setUseGradient(design.useGradient ?? false);
+        setStartColor(design.startColor ?? '#ffffff');
+        setEndColor(design.endColor ?? '#ffffff');
+        setAngle(design.angle ?? 90);
+        setGradientType(design.gradientType ?? 'linear-gradient(90deg, #ff7e5f, #feb47b)');
+        setSolidColor(design.solidColor ?? '#ffffff');
+  
         const newState: Partial<AppState> = {
           shapeStates: validatedShapes,
           canvasWidth: imported.canvas?.width ?? 800,
           canvasHeight: imported.canvas?.height ?? 600,
-          foreground: imported.design?.foreground ?? '#000000',
-          stroke: imported.design?.stroke ?? '#cccccc',
+          foreground: design.foreground ?? '#000000',
+          stroke: design.stroke ?? '#cccccc',
         };
-
+  
         pushToHistory(newState);
       } catch (error) {
         alert('❌ Invalid JSON file.');
       }
     };
-
+  
     reader.readAsText(file);
   };
+  
 
   const handleExport = () => {
     const data = {
@@ -196,6 +210,14 @@ const App: React.FC = () => {
         foreground,
         background: computedBackground,
         stroke,
+        showGrid,
+        lightTheme,
+        useGradient,
+        startColor,
+        endColor,
+        angle,
+        gradientType,
+        solidColor,
       },
       shapes: shapeStates.map((shape) => ({
         id: shape.id,
@@ -205,25 +227,28 @@ const App: React.FC = () => {
         height: shape.height,
         x: shape.x,
         y: shape.y,
-        fill: shape.fill,
-        stroke: shape.stroke,
-        strokeWidth: shape.strokeWidth,
-        rotation: shape.rotation,
-        opacity: shape.opacity,
-        transition: shape.transition,
-        borderRadius: shape.borderRadius,
-        boxShadow: shape.boxShadow,
+        fill: shape.fill ?? '#ffffff',
+        stroke: shape.stroke ?? '#000000',
+        strokeWidth: shape.strokeWidth ?? 1,
+        rotation: shape.rotation ?? 0,
+        opacity: shape.opacity ?? 1,
+        transition: shape.transition ?? '',
+        borderRadius: shape.borderRadius ?? 0,
+        boxShadow: shape.boxShadow ?? '',
         text: shape.title ?? '',
         fontSize: shape.fontSize ?? 16,
         fontWeight: shape.fontWeight ?? 'normal',
         fontFamily: shape.fontFamily ?? 'Arial',
+        textShadow: shape.textShadow ?? '',
+        fontColor: shape.fontColor ?? '#000000',
+        zIndex: shape.zIndex ?? 1,
       })),
     };
-
+  
     const json = JSON.stringify(data, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-
+  
     const link = document.createElement('a');
     link.href = url;
     link.download = 'layout.json';
@@ -232,6 +257,7 @@ const App: React.FC = () => {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
+  
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -328,14 +354,19 @@ const App: React.FC = () => {
 
       {editingShapeIndex !== null && shapeStates[editingShapeIndex] && (
         <ShapeEdit
-          shape={shapeStates[editingShapeIndex]}
-          onUpdate={(updated) => {
-            const updatedShapes = [...shapeStates];
-            updatedShapes[editingShapeIndex] = { ...updatedShapes[editingShapeIndex], ...updated };
-            pushToHistory({ shapeStates: updatedShapes });
-          }}
-          onClose={() => setEditingShapeIndex(null)}
-        />
+        shape={shapeStates[editingShapeIndex]}
+        onUpdate={(updatedFields) => {
+          const updated = [...shapeStates];
+          updated[editingShapeIndex] = {
+            ...updated[editingShapeIndex],
+            ...updatedFields,
+          };
+          pushToHistory({ shapeStates: updated }); // ✅ ensure history + update
+        }}
+        onClose={() => setEditingShapeIndex(null)}
+        lightTheme={lightTheme}
+      />         
+      
       )}
     </div>
   );

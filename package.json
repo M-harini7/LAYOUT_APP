@@ -1,21 +1,20 @@
 {
   "name": "vite-react-typescript-starter",
   "private": true,
-  "homepage": "https:/M-harini7/.github.io/LayoutApp",
+  "homepage": "https:/M-harini7/.github.io/LAYOUT_APP",
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview", 
+    "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
-
   },
   "gh-pages": {
-  "cache": ".gh-pages-cache"
-},
+    "cache": ".gh-pages-cache"
+  },
   "dependencies": {
     "@tippyjs/react": "^4.2.6",
     "html-to-image": "^1.11.13",

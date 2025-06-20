@@ -16,6 +16,7 @@ interface Props {
   setGradientType: (value: string) => void;
   solidColor: string;
   setSolidColor: (value: string) => void;
+  lightTheme?: boolean;
 }
 
 const predefinedGradients = [
@@ -41,15 +42,18 @@ const DesignTab: React.FC<Props> = ({
   setGradientType,
   solidColor,
   setSolidColor,
+  lightTheme = true,
 }) => {
   const isCustom = gradientType === 'custom';
 
   return (
-    <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm flex flex-wrap gap-6 text-sm transition-all duration-200">
-
+    <div
+      className={`w-full px-4 py-3 rounded-lg shadow-sm flex flex-wrap gap-6 text-sm transition-all duration-200 border
+        ${lightTheme ? 'bg-white text-black border-gray-300' : 'bg-gray-800 text-white border-gray-700'}`}
+    >
       {/* Foreground */}
       <div className="flex flex-col items-start gap-1">
-        <div className="flex items-center gap-2 text-gray-700">
+        <div className={`flex items-center gap-2 ${lightTheme ? 'text-gray-700' : 'text-gray-300'}`}>
           <FiDroplet size={16} />
           <span className="font-medium">Foreground</span>
         </div>
@@ -60,14 +64,18 @@ const DesignTab: React.FC<Props> = ({
           className="w-8 h-8 rounded border shadow-sm cursor-pointer"
         />
       </div>
+
       {/* Background */}
-      <div className="flex flex-col items-start gap-2 border-l pl-4 border-gray-300 min-w-[240px]">
+      <div
+        className={`flex flex-col items-start gap-2 border-l pl-4 min-w-[240px]
+          ${lightTheme ? 'border-gray-300' : 'border-gray-600'}`}
+      >
         <div className="flex items-center justify-between w-full">
-          <div className="flex items-center gap-2 text-gray-700">
+          <div className={`flex items-center gap-2 ${lightTheme ? 'text-gray-700' : 'text-gray-300'}`}>
             <FiLayers size={16} />
             <span className="font-medium">Background</span>
           </div>
-          <label className="flex items-center gap-1 text-xs text-gray-600">
+          <label className={`flex items-center gap-1 text-xs ${lightTheme ? 'text-gray-600' : 'text-gray-400'}`}>
             <input
               type="checkbox"
               checked={useGradient}
@@ -78,15 +86,18 @@ const DesignTab: React.FC<Props> = ({
           </label>
         </div>
 
-        {/* Gradient Controls */}
         {useGradient ? (
           <>
             <div className="flex gap-2 flex-wrap max-w-[220px]">
               {predefinedGradients.map((preset, idx) => (
                 <div
                   key={idx}
-                  className={`w-5 h-5 rounded cursor-pointer border-2 ${
-                    gradientType === preset.value && !isCustom ? 'border-blue-600' : 'border-gray-200'
+                  className={`w-5 h-5 rounded cursor-pointer border-2 transition-all duration-150 ${
+                    gradientType === preset.value && !isCustom
+                      ? 'border-blue-600'
+                      : lightTheme
+                        ? 'border-gray-200'
+                        : 'border-gray-600'
                   }`}
                   style={{
                     background:
@@ -100,7 +111,6 @@ const DesignTab: React.FC<Props> = ({
               ))}
             </div>
 
-            {/* Custom Controls */}
             {isCustom && (
               <div className="flex flex-col gap-2 mt-1">
                 <div className="flex items-center gap-2">
@@ -127,7 +137,9 @@ const DesignTab: React.FC<Props> = ({
                     className="w-28 h-2"
                     title="Angle"
                   />
-                  <span className="text-xs text-gray-600">{angle}°</span>
+                  <span className={`text-xs ${lightTheme ? 'text-gray-600' : 'text-gray-400'}`}>
+                    {angle}°
+                  </span>
                 </div>
               </div>
             )}
