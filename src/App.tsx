@@ -319,6 +319,8 @@ const App: React.FC = () => {
             setGradientType={setGradientType}
             solidColor={solidColor}
             setSolidColor={setSolidColor}
+            selectedShapeIds={selectedShapeIds}
+  clipboard={clipboard ?? []}
         />
 
         {showShapes && (
