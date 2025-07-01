@@ -41,7 +41,7 @@ function getRotatedCorners(x: number, y: number, width: number, height: number, 
   });
 }
 
-// ✅ Utility: Check if all corners are inside canvas
+//  Utility: Check if all corners are inside canvas
 function isInsideCanvas(corners: { x: number; y: number }[], canvasWidth: number, canvasHeight: number) {
   return corners.every(({ x, y }) => x >= 0 && x <= canvasWidth && y >= 0 && y <= canvasHeight);
 }
